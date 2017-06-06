@@ -66,33 +66,33 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(PlatformName)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SCRT|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(PlatformName)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(PlatformName)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(PlatformName)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SCRT|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(PlatformName)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DLL|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(PlatformName)\$(Configuration)\</OutDir>
-    <IntDir>$(PlatformName)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -110,6 +110,9 @@
       <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32.lib;GLFW.lib;OpenGL32.lib;Glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <BuildLog>
+      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+    </BuildLog>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SCRT|Win32'">
     <ClCompile>
@@ -125,6 +128,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
     </Link>
+    <BuildLog>
+      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+    </BuildLog>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|Win32'">
     <ClCompile>
@@ -139,6 +145,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
     </Link>
+    <BuildLog>
+      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+    </BuildLog>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -158,6 +167,9 @@
       <AdditionalDependencies>glew32.lib;GLFW.lib;OpenGL32.lib;Glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ProjectReference />
+    <BuildLog>
+      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+    </BuildLog>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SCRT|Win32'">
     <ClCompile>
@@ -177,6 +189,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ProjectReference />
+    <BuildLog>
+      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+    </BuildLog>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DLL|Win32'">
     <ClCompile>
@@ -195,6 +210,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ProjectReference />
+    <BuildLog>
+      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+    </BuildLog>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\demo\Bench.c" />
