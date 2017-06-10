@@ -1,95 +1,90 @@
-// Copyright 2013 Howling Moon Software. All rights reserved.
-// See http://chipmunk2d.net/legal.php for more information.
 
-#import <malloc/malloc.h>
 
-#import "ChipmunkAutoGeometry.h"
+#include "ChipmunkAutoGeometry.h"
 
-@implementation ChipmunkPolyline
-
--(id)initWithPolyline:(cpPolyline *)line
-{
-	if((self = [super init])){
-		_line = line;
-	}
-	
-	return self;
-}
-
--(void)dealloc
+ChipmunkPolyline::~ChipmunkPolyline()
 {
 	cpPolylineFree(_line);
-	
-	[super dealloc];
 }
 
-+(ChipmunkPolyline *)fromPolyline:(cpPolyline *)line
+ChipmunkPolyline* ChipmunkPolyline::initWithPolyline(cpPolyline *line)
 {
-	return [[[self alloc] initWithPolyline:line] autorelease];
+	_line=line;
+	return this;
 }
 
--(bool)isClosed
+ChipmunkPolyline ChipmunkPolyline::fromPolyline(cpPolyline *line)
 {
-	return cpPolylineIsClosed(_line);
+	return this->initWithPolyline(line);
 }
 
--(cpFloat)area
-{
-	if(_area == 0.0 && [self isClosed]){
-		_area = cpAreaForPoly(_line->count - 1, _line->verts, 0.0);
-	}
-	
-	return _area;
-}
-
--(cpVect)centroid
-{
-	cpAssertHard([self isClosed], "Cannot compute the centroid of a non-looped polyline.");
-	return cpCentroidForPoly(_line->count - 1, _line->verts);
-}
-
--(cpFloat)momentForMass:(cpFloat)mass offset:(cpVect)offset
+cpFloat ChipmunkPolyline::momentForMass(cpFloat mass,cpVect offset)
 {
 	cpAssertHard([self isClosed], "Cannot compute the moment of a non-looped polyline.");
 	return cpMomentForPoly(mass, _line->count - 1, _line->verts, offset, 0.0);
 }
 
--(NSUInteger)count {return _line->count;}
--(const cpVect *)verts {return _line->verts;}
-
--(ChipmunkPolyline *)simplifyCurves:(cpFloat)tolerance
+bool ChipmunkPolyline::isClosed()
 {
-	return [ChipmunkPolyline fromPolyline:cpPolylineSimplifyCurves(_line, tolerance)];
+	cpPolylineIsClosed(_line);
 }
 
--(ChipmunkPolyline *)simplifyVertexes:(cpFloat)tolerance
+cpFloat ChipmunkPolyline::area()
 {
-	return [ChipmunkPolyline fromPolyline:cpPolylineSimplifyVertexes(_line, tolerance)];
+	if(_area == 0.0 && [self isClosed]){
+		_area = cpAreaForPoly(_line->count - 1, _line->verts, 0.0);
+	}
+	return _area;
 }
 
--(ChipmunkPolyline *)toConvexHull:(cpFloat)tolerance
+
+cpVect ChipmunkPolyline::centroid()
 {
-	return [ChipmunkPolyline fromPolyline:cpPolylineToConvexHull(_line, tolerance)];
+	cpAssertHard([self isClosed], "Cannot compute the centroid of a non-looped polyline.");
+	return cpCentroidForPoly(_line->count - 1, _line->verts);
 }
 
--(ChipmunkPolyline *)toConvexHull
+	
+ChipmunkPolyline *ChipmunkPolyline::simplifyCurves(cpFloat tolerance)
 {
-	return [self toConvexHull:0.0];
+	return ChipmunkPolyline::fromPolyline(cpPolylineSimplifyCurves(_line, tolerance));
 }
 
--(ChipmunkPolylineSet *)toConvexHulls_BETA:(cpFloat)tolerance
+int ChipmunkPolyline::count()
+{
+	return _line->count;
+}
+
+const cpVect* ChipmunkPolyline::verts() 
+{
+	return _line->verts;
+}
+
+ChipmunkPolyline *ChipmunkPolyline::simplifyVertexes(cpFloat tolerance)
+{
+	return ChipmunkPolyline::fromPolyline(cpPolylineSimplifyVertexes(_line, tolerance));
+}
+
+ChipmunkPolyline *ChipmunkPolyline::toConvexHull()
+{
+	return ChipmunkPolyline::toConvexHull(0.0);
+}
+
+ChipmunkPolyline *ChipmunkPolyline::toConvexHull(cpFloat tolerance)
+{
+	return ChipmunkPolyline::fromPolyline(cpPolylineToConvexHull(_line, tolerance));
+}
+
+ChipmunkPolylineSet *ChipmunkPolyline::toConvexHulls_BETA(cpFloat tolerance)
 {
 	cpPolylineSet *set = cpPolylineConvexDecomposition_BETA(_line, tolerance);
-	ChipmunkPolylineSet *value = [ChipmunkPolylineSet fromPolylineSet:set];
+	ChipmunkPolylineSet *value = ChipmunkPolylineSet::fromPolylineSet(set);
 	cpPolylineSetFree(set, FALSE);
-	
-	return value;
 }
 
--(NSArray *)asChipmunkSegmentsWithBody:(ChipmunkBody *)body radius:(cpFloat)radius offset:(cpVect)offset
+NSArray *ChipmunkPolyline::asChipmunkSegmentsWithBody(ChipmunkBody *body,cpFloat radius,cpVect offset)
 {
 	NSMutableArray *arr = [NSMutableArray arrayWithCapacity:_line->count];
-	
 	
 	cpVect a = cpvadd(_line->verts[0], offset);
 	for(int i=1; i<_line->count; i++){
@@ -101,86 +96,52 @@
 	return arr;
 }
 
--(ChipmunkPolyShape *)asChipmunkPolyShapeWithBody:(ChipmunkBody *)body transform:(cpTransform)transform radius:(cpFloat)radius
+ChipmunkPolyShape *ChipmunkPolyline::asChipmunkPolyShapeWithBody(ChipmunkBody *body,cpTransform transform,cpFloat radius)
 {
 	cpAssertHard([self isClosed], "Cannot create a poly shape for a non-closed polyline.");
 	return [ChipmunkPolyShape polyWithBody:body count:_line->count - 1 verts:_line->verts transform:transform radius:radius];
 }
 
-@end
 
-
-
-@implementation ChipmunkPolylineSet
-
--(id)initWithPolylineSet:(cpPolylineSet *)set
+ChipmunkPolylineSet* ChipmunkPolylineSet::initWithPolylineSet(cpPolylineSet *set)
 {
-	if((self = [super init])){
-		_lines = [[NSMutableArray alloc] initWithCapacity:set->count];
-		for(int i=0; i<set->count; i++) [_lines addObject:[ChipmunkPolyline fromPolyline:set->lines[i]]];
-	}
-	
-	return self;
+	return ChipmunkPolylineSet::fromPolylineSet(set);
 }
 
--(void)dealloc
+ChipmunkPolylineSet *ChipmunkPolylineSet::fromPolylineSet(cpPolylineSet *set)
 {
-	[_lines release];
-	
-	[super dealloc];
+	for(int i=0; i<set->count; i++) 
+		_lines.push(ChipmunkPolyline::fromPolyline(set->lines[i]);
+	return this;
 }
 
-+(ChipmunkPolylineSet *)fromPolylineSet:(cpPolylineSet *)set
+int ChipmunkPolylineSet::count()
 {
-	return [[[self alloc] initWithPolylineSet:set] autorelease];
+	return _lines.size();
 }
 
--(NSUInteger)count {return _lines.count;}
-
--(ChipmunkPolyline *)lineAtIndex:(NSUInteger)index
+ChipmunkPolyline *ChipmunkPolylineSet::lineAtIndex(int index)
 {
-	return [_lines objectAtIndex:index];
+ 	return _lines[index];
 }
 
-- (NSUInteger)countByEnumeratingWithState:(NSFastEnumerationState *)state objects:(id *)stackbuf count:(NSUInteger)len
+ChipmunkAbstractSampler::ChipmunkAbstractSampler()
 {
-	return [_lines countByEnumeratingWithState:state objects:stackbuf count:len];
+
 }
 
-@end
-
-
-
-@implementation ChipmunkAbstractSampler
-
-@synthesize marchThreshold = _marchThreshold;
-@synthesize sampleFunc = _sampleFunc;
-
--(id)init {
-	@throw [NSException
-		exceptionWithName:NSInternalInconsistencyException
-		reason:[NSString stringWithFormat:@"Use designated initializer initWithSamplingFunction: to initialize a sampler."]
-		userInfo:nil
-	];
-}
-
--(id)initWithSamplingFunction:(cpMarchSampleFunc)sampleFunc
+ChipmunkAbstractSampler* ChipmunkAbstractSampler::initWithSamplingFunction(cpMarchSampleFunc sampleFunc)
 {
-	if((self = [super init])){
-		_sampleFunc = sampleFunc;
-		_marchThreshold = 0.5;
-	}
-	
-	return self;
+	_sampleFunc = sampleFunc;
+	_marchThreshold = 0.5;
 }
 
--(cpFloat)sample:(cpVect)pos
+cpFloat ChipmunkAbstractSampler::sample(cpVect pos)
 {
 	return _sampleFunc(pos, self);
 }
 
-
--(ChipmunkPolylineSet *)march:(cpBB)bb xSamples:(NSUInteger)xSamples ySamples:(NSUInteger)ySamples hard:(bool)hard
+ChipmunkPolylineSet *ChipmunkAbstractSampler::march(cpBB bb,int xSamples,int ySamples,bool hard)
 {
 	cpPolylineSet set;
 	cpPolylineSetInit(&set);
@@ -188,20 +149,14 @@
 	(hard ? cpMarchHard : cpMarchSoft)(
 		bb, xSamples, ySamples, _marchThreshold,
 		(cpMarchSegmentFunc)cpPolylineSetCollectSegment, &set,
-		_sampleFunc, self
+		_sampleFunc, this
 	);
 	
-	ChipmunkPolylineSet *value = [ChipmunkPolylineSet fromPolylineSet:&set];
+	ChipmunkPolylineSet *value = ChipmunkPolylineSet::fromPolylineSet(&set);
 	
 	cpPolylineSetDestroy(&set, FALSE);
 	return value;
 }
-
-@end
-
-
-
-@implementation ChipmunkBlockSampler
 
 static cpFloat
 SampleFromBlock(cpVect point, ChipmunkBlockSampler *self)
@@ -209,24 +164,19 @@ SampleFromBlock(cpVect point, ChipmunkBlockSampler *self)
 	return self->_block(point);
 }
 
--(id)initWithBlock:(ChipmunkMarchSampleBlock)block
+ChipmunkBlockSampler::ChipmunkBlockSampler()
 {
-	if((self = [super initWithSamplingFunction:(cpMarchSampleFunc)SampleFromBlock])){
-		_block = [block copy];
-	}
-	
-	return self;
+
 }
 
-+(ChipmunkBlockSampler *)samplerWithBlock:(ChipmunkMarchSampleBlock)block
+ChipmunkBlockSampler* ChipmunkBlockSampler::initWithBlock(ChipmunkMarchSampleBlock block)
 {
-	return [[[self alloc] initWithBlock:block] autorelease];
+	initWithSamplingFunction((cpMarchSampleFunc)SampleFromBlock);
+	_block=block;
+	return this;
 }
 
--(void)dealloc
+ChipmunkBlockSampler* ChipmunkBlockSampler::samplerWithBlock(ChipmunkMarchSampleBlock block)
 {
-	[_block release];
-	[super dealloc];
+	return initWithBlock(block);
 }
-
-@end

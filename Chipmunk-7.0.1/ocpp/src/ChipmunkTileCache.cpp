@@ -1,33 +1,24 @@
-// Copyright 2013 Howling Moon Software. All rights reserved.
-// See http://chipmunk2d.net/legal.php for more information.
 
-#import "ChipmunkTileCache.h"
+#include "ChipmunkTileCache.h"
 
 
-@interface ChipmunkCachedTile : NSObject {
+class ChipmunkCachedTile {
+private:
 	cpBB _bb;
 	bool _dirty;
 	
 	ChipmunkCachedTile *_next, *_prev;
 	
-	NSArray *_shapes;
-}
+	std::vector<ChipmunkShape*> _shapes;
+public:
+	cpBB bb;
+	bool dirty;
 
-@property(nonatomic, readonly) cpBB bb;
-@property(nonatomic, assign) bool dirty;
+	ChipmunkCachedTile *next;
+	ChipmunkCachedTile *prev;
 
-@property(nonatomic, assign) ChipmunkCachedTile *next;
-@property(nonatomic, assign) ChipmunkCachedTile *prev;
-
-@property(nonatomic, retain) NSArray *shapes;
-
-@end
-
-
-
-@implementation ChipmunkCachedTile
-
-@synthesize bb = _bb, dirty = _dirty, shapes = _shapes, next = _next, prev = _prev;
+	std::vector<ChipmunkShape*> shapes;
+};
 
 static cpBB
 ChipmunkCachedTileBB(ChipmunkCachedTile *tile)
@@ -41,83 +32,71 @@ ChipmunkCachedTileQuery(cpVect *pos, ChipmunkCachedTile *tile, cpCollisionID id,
 	if(cpBBContainsVect(tile->_bb, *pos)) (*out) = tile;
 }
 
-
--(id)initWithBB:(cpBB)bb
+ChipmunkCachedTile* ChipmunkCachedTile::initWithBB:(cpBB)bb
 {
-	if((self = [super init])) _bb = bb;
-	return self;
+	_bb = bb;
+	return this;
 }
 
--(void)dealloc
+
+
+ChipmunkAbstractTileCache* ChipmunkAbstractTileCache::initWith(ChipmunkAbstractSampler *sampler,ChipmunkSpace *space,cpFloat tileSize,int samplesPerTile,int cacheSize)
 {
-	self.shapes = nil;
-	[super dealloc];
+	_sampler = sampler;
+	_space = space;
+	
+	_tileSize = tileSize;
+	_samplesPerTile =samplesPerTile;
+	_tileOffset = cpvzero;
+	
+	_cacheSize = cacheSize;
+	this->resetCache();
+
+	return this;
 }
 
-@end
-
-
-
-@implementation ChipmunkAbstractTileCache
-
-@synthesize marchHard = _marchHard, sampler = _sampler, tileOffset = _tileOffset;
-
--(id)initWithSampler:(ChipmunkAbstractSampler *)sampler space:(ChipmunkSpace *)space tileSize:(cpFloat)tileSize samplesPerTile:(NSUInteger)samplesPerTile cacheSize:(NSUInteger)cacheSize
+void ChipmunkAbstractTileCache::removeShapesForTile(ChipmunkCachedTile *tile)
 {
-	if((self = [super init])){
-		_sampler = [sampler retain];
-		_space = [space retain];
-		
-		_tileSize = tileSize;
-		_samplesPerTile =samplesPerTile;
-		_tileOffset = cpvzero;
-		
-		_cacheSize = cacheSize;
-		[self resetCache];
+	for(ChipmunkShape *shape in tile.shapes)
+	{
+		delete tile.shapes;
 	}
-
-	return self;
+	tile.shapes.Clear();
 }
 
--(void)removeShapesForTile:(ChipmunkCachedTile *)tile
+ChipmunkAbstractTileCache::ChipmunkAbstractTileCache()
 {
-	for(ChipmunkShape *shape in tile.shapes) [_space remove:shape];
-}
 
--(void)dealloc
+}
+ChipmunkAbstractTileCache::~ChipmunkAbstractTileCache()
 {
 	for(ChipmunkCachedTile *tile = _cacheTail; tile; tile = tile.next){
-		[tile autorelease];
+		this->removeShapesForTile(tile);
+		delete tile;
 	}
-	
-	[_sampler release];
-	[_space release];
-	
 	cpSpatialIndexFree(_tileIndex);
-	
-	[super dealloc];
 }
 
--(void)resetCache
+void ChipmunkAbstractTileCache::resetCache()
 {
 	_ensuredDirty = TRUE;
 	
 	// Reset the spatial index.
-	if(_tileIndex) cpSpatialIndexFree(_tileIndex);
+	if(_tileIndex) 
+		cpSpatialIndexFree(_tileIndex);
 	_tileIndex = cpSpaceHashNew(_tileSize, (int)_cacheSize, (cpSpatialIndexBBFunc)ChipmunkCachedTileBB, NULL);
 	
 	// Remove all the shapes and release all the tiles.
 	for(ChipmunkCachedTile *tile = _cacheTail; tile; tile = tile.next){
-		[self removeShapesForTile:tile];
-		[tile autorelease];
+		this->removeShapesForTile(tile);
+		delete tile;
 	}
-	
 	// Clear out the tile list.
-	_cacheHead = _cacheTail = nil;
+	_cacheHead = _cacheTail = nullptr;
 	_tileCount = 0;
 }
 
--(void)marchTile:(ChipmunkCachedTile *)tile
+void ChipmunkAbstractTileCache::marchTile(ChipmunkCachedTile *tile)
 {
 	// Remove old shapes for this tile.
 	for(ChipmunkShape *shape in tile.shapes) [_space remove:shape];

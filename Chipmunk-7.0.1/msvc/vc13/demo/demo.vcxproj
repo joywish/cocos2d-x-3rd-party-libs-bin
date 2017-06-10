@@ -66,33 +66,33 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(ProjectName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(ProjectName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug SCRT|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(ProjectName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(ProjectName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(ProjectName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(ProjectName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(ProjectName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(ProjectName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release SCRT|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(ProjectName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(ProjectName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release DLL|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(SolutionDir)..\..\_out\$(SolutionName)\$(Configuration).$(Platform)\</OutDir>
-    <IntDir>$(SolutionDir)..\..\_out\$(SolutionName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)..\..\_out\$(ProjectName)\$(Configuration).$(Platform)\</OutDir>
+    <IntDir>$(SolutionDir)..\..\_out\$(ProjectName)\_int\$(ProjectName)_$(Configuration).$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -107,12 +107,18 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32;$(OutDir);</AdditionalLibraryDirectories>
       <AdditionalDependencies>glew32.lib;GLFW.lib;OpenGL32.lib;Glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <BuildLog>
-      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+      <Path>$(SolutionDir)..\..\_out\$(ProjectName)\log\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <PreLinkEvent>
+      <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\lib\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\bin\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glfw\lib-msvc100\*.*" "$(OutDir)"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug SCRT|Win32'">
     <ClCompile>
@@ -126,11 +132,17 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32;$(OutDir);</AdditionalLibraryDirectories>
     </Link>
     <BuildLog>
-      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+      <Path>$(SolutionDir)..\..\_out\$(ProjectName)\log\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <PreLinkEvent>
+      <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\lib\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\bin\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glfw\lib-msvc100\*.*" "$(OutDir)"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug DLL|Win32'">
     <ClCompile>
@@ -143,11 +155,17 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32;$(OutDir);</AdditionalLibraryDirectories>
     </Link>
     <BuildLog>
-      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+      <Path>$(SolutionDir)..\..\_out\$(ProjectName)\log\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <PreLinkEvent>
+      <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\lib\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\bin\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glfw\lib-msvc100\*.*" "$(OutDir)"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -162,14 +180,20 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32;$(OutDir);</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>glew32.lib;GLFW.lib;OpenGL32.lib;Glu32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <ProjectReference />
     <BuildLog>
-      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+      <Path>$(SolutionDir)..\..\_out\$(ProjectName)\log\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <PreLinkEvent>
+      <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\lib\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\bin\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glfw\lib-msvc100\*.*" "$(OutDir)"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release SCRT|Win32'">
     <ClCompile>
@@ -185,13 +209,19 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32;$(OutDir);</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ProjectReference />
     <BuildLog>
-      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+      <Path>$(SolutionDir)..\..\_out\$(ProjectName)\log\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <PreLinkEvent>
+      <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\lib\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\bin\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glfw\lib-msvc100\*.*" "$(OutDir)"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release DLL|Win32'">
     <ClCompile>
@@ -206,13 +236,19 @@
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>..\..\glut\lib;..\..\glfw\lib-msvc100;..\..\glew\lib\Release\Win32;$(OutDir);</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <ProjectReference />
     <BuildLog>
-      <Path>$(SolutionDir)..\..\_out\$(SolutionName)\log\$(MSBuildProjectName).log</Path>
+      <Path>$(SolutionDir)..\..\_out\$(ProjectName)\log\$(MSBuildProjectName).log</Path>
     </BuildLog>
+    <PreLinkEvent>
+      <Command>if not exist "$(OutDir)" mkdir "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\lib\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glew\bin\Release\Win32\*.*" "$(OutDir)"
+xcopy /Y /Q "$(ProjectDir)..\..\glfw\lib-msvc100\*.*" "$(OutDir)"</Command>
+    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\demo\Bench.c" />

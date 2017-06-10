@@ -16,26 +16,25 @@ public:
 	static ChipmunkPolyline fromPolyline(cpPolyline *line);
 
 	/// Returns true if the first and last vertex are equal.
- 	bool isClosed;
+ 	bool isClosed();
 
 	/// Returns the signed area of the polyline calculated by cpAreaForPoly.
 	/// Non-closed polylines return an area of 0.
- 	cpFloat area;
+ 	cpFloat area();
 
 	/// Centroid of the polyline calculated by cpCentroidForPoly.
 	/// It is an error to call this on a non-closed polyline.
-	cpVect centroid;
+	cpVect centroid();
 
 	/// Calculates the moment of inertia for a closed polyline with the given mass and offset.
 	cpFloat momentForMass(cpFloat mass,cpVect offset);
 
 
 	/// Vertex count.
-	int count;
+	int count();
 
 	/// Array of vertexes.
-	cpVect *verts;
-
+	const cpVect* verts(); 
 
 	///Returns a copy of a polyline simplified by using the Douglas-Peucker algorithm.
 	///This works very well on smooth or gently curved shapes, but not well on straight edged or angular shapes.
@@ -73,7 +72,7 @@ public:
 
 	ChipmunkPolylineSet* initWithPolylineSet(cpPolylineSet *set);
 	static ChipmunkPolylineSet *fromPolylineSet(cpPolylineSet *set);
-	int count;
+	int count();
 
 	ChipmunkPolyline *lineAtIndex(int index);
 };
@@ -116,7 +115,6 @@ public:
 	ChipmunkBlockSampler* initWithBlock(ChipmunkMarchSampleBlock block);
  	static ChipmunkBlockSampler *samplerWithBlock(ChipmunkMarchSampleBlock block);
 };
-
 
 #include "ChipmunkImageSampler.h"
 #include "ChipmunkPointCloudSampler.h"

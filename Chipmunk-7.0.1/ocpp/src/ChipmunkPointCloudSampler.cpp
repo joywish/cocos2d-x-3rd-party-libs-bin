@@ -1,7 +1,5 @@
-// Copyright 2013 Howling Moon Software. All rights reserved.
-// See http://chipmunk2d.net/legal.php for more information.
 
-#import "ChipmunkPointCloudSampler.h"
+#include "ChipmunkPointCloudSampler.h"
 
 
 typedef struct DeformPoint {
@@ -15,13 +13,8 @@ PointBB(DeformPoint *point)
 {
 	cpVect v = point->pos;
 	cpFloat r = point->radius;
-	
 	return cpBBNew(v.x - r, v.y - r, v.x + r, v.y + r);
 }
-
-
-
-@implementation ChipmunkPointCloudSampler
 
 static inline cpFloat
 fuzz(cpVect v, cpVect c, cpFloat r, cpFloat softness)
@@ -45,28 +38,27 @@ PointCloudSample(ChipmunkPointCloudSampler *cloud, cpVect pos)
 	return density;
 }
 
-- (id)initWithCellSize:(cpFloat)cellSize
+static void freeWrap(void *ptr, void *unused)
 {
-	if((self = [super initWithSamplingFunction:(cpMarchSampleFunc)PointCloudSample])){
-		_cellSize = cellSize;
-		// TODO table size
-		_index = cpSpaceHashNew(cellSize, 1000, (cpSpatialIndexBBFunc)PointBB, NULL);
-	}
-	
+	cpfree(ptr);
+}
+
+ChipmunkPointCloudSampler* ChipmunkPointCloudSampler::initWith(cpFloat cellSize)
+{
+	initWithSamplingFunction(cpMarchSampleFunc PointCloudSample]);
+	_cellSize = cellSize;
+	// TODO table size
+	_index = cpSpaceHashNew(cellSize, 1000, (cpSpatialIndexBBFunc)PointBB, NULL);
 	return self;
 }
 
-static void freeWrap(void *ptr, void *unused){cpfree(ptr);}
-
-- (void)dealloc
+ChipmunkPointCloudSampler::~ChipmunkPointCloudSampler()
 {
 	cpSpatialIndexEach(_index, (cpSpatialIndexIteratorFunc)freeWrap, NULL);
 	cpSpatialIndexFree(_index);
-	
-	[super dealloc];
 }
 
--(cpBB)addPoint:(cpVect)pos radius:(cpFloat)radius fuzz:(cpFloat)fuzz
+cpBB ChipmunkPointCloudSampler::addPoint(cpVect pos,cpFloat radius,cpFloat fuzz);
 {
 	DeformPoint *point = (DeformPoint *)cpcalloc(1, sizeof(DeformPoint));
 	point->pos = pos;
@@ -77,5 +69,3 @@ static void freeWrap(void *ptr, void *unused){cpfree(ptr);}
 	
 	return PointBB(point);
 }
-
-@end

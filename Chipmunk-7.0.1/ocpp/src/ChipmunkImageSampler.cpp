@@ -1,25 +1,5 @@
-// Copyright 2013 Howling Moon Software. All rights reserved.
-// See http://chipmunk2d.net/legal.php for more information.
 
-//
-//  ChipmunkImageSampler.m
-//  DeformableChipmunk
-//
-//  Created by Scott Lembcke on 8/26/11.
-//  Copyright 2011 __MyCompanyName__. All rights reserved.
-//
-
-#import <TargetConditionals.h>
-
-#if TARGET_OS_IPHONE == 1
-	#import <ImageIO/ImageIO.h>
-#endif
-
-#import "ChipmunkImageSampler.h"
-
-@implementation ChipmunkBitmapSampler
-
-@synthesize width = _width, height = _height, bytesPerPixel = _bytesPerPixel, component = _component, pixelData = _pixelData, outputRect = _outputRect;
+#include "ChipmunkImageSampler.h"
 
 // Much faster than (int)floor(f)
 // Profiling showed floor() to be a sizable performance hog
@@ -81,40 +61,37 @@ SampleFunc8Border(cpVect point, ChipmunkBitmapSampler *self)
 	}
 }
 
--(id)initWithWidth:(NSUInteger)width height:(NSUInteger)height stride:(NSUInteger)stride bytesPerPixel:(NSUInteger)bytesPerPixel component:(NSUInteger)component flip:(bool)flip pixelData:(NSData *)pixelData
+ChipmunkBitmapSampler* ChipmunkBitmapSampler::initWith(int width,int height,int stride,int bytesPerPixel,int component,bool flip,void *pixelData,int datalen)
 {
-	if((self = [super initWithSamplingFunction:(cpMarchSampleFunc)SampleFunc8Clamp])){
-		_width = width;
-		_height = height;
-		_stride = stride;
-		
-		_bytesPerPixel = bytesPerPixel;
-		_component = component;
-		
-		_flip = flip;
-		_pixelData = [pixelData retain];
-		_pixels = [pixelData bytes];
-		
-		_outputRect = cpBBNew(0.5, 0.5, self.width - 0.5, self.height - 0.5);
-	}
-
-	return self;
-}
-
-
-- (void)dealloc
-{
-	[_pixelData release];
+	initWithSamplingFunction(cpMarchSampleFunc SampleFunc8Clamp]);
+	_width = width;
+	_height = height;
+	_stride = stride;
 	
-	[super dealloc];
+	_bytesPerPixel = bytesPerPixel;
+	_component = component;
+	
+	_flip = flip;
+	_pixelData = pixelData;
+	_pixels = datalen;
+	
+	_outputRect = cpBBNew(0.5, 0.5, self.width - 0.5, self.height - 0.5);
+
+	return this;
 }
 
--(void)setBorderRepeat
+
+ChipmunkBitmapSampler::~ChipmunkBitmapSampler()
+{
+
+}
+
+void ChipmunkBitmapSampler::setBorderRepeat()
 {
 	_sampleFunc = (cpMarchSampleFunc)SampleFunc8Clamp;
 }
 
--(void)setBorderValue:(cpFloat)borderValue
+void ChipmunkBitmapSampler::setBorderValue(cpFloat borderValue)
 {
 	_sampleFunc = (cpMarchSampleFunc)SampleFunc8Border;
 	_borderValue = borderValue;
@@ -129,30 +106,27 @@ BorderedBB(cpBB bb, NSUInteger width, NSUInteger height)
 	return cpBBNew(bb.l - xBorder, bb.b - yBorder, bb.r + xBorder, bb.t + yBorder);
 }
 
--(ChipmunkPolylineSet *)marchAllWithBorder:(bool)bordered hard:(bool)hard
+ChipmunkPolylineSet *ChipmunkBitmapSampler::marchAllWithBorder(bool bordered,bool hard)
 {
 	NSUInteger width = self.width;
 	NSUInteger height = self.height;
 	cpBB bb = self.outputRect;
 	
 	if(bordered){
-		return [self march:BorderedBB(bb, width, height) xSamples:width+2 ySamples:height+2 hard:hard];
+		return this->march(BorderedBB(bb, width, height),width+2,height+2,hard);
 	} else {
-		return [self march:bb xSamples:width ySamples:height hard:hard];
+		return this->march(bb,width,height,hard);
 	}
 }
 
-@end
 
 
+NSMutableData *ChipmunkCGContextSampler::pixelData 
+{
+	return (NSMutableData *)super.pixelData;
+}
 
-@implementation ChipmunkCGContextSampler
-
-@synthesize context = _context;
-
--(NSMutableData *)pixelData {return (NSMutableData *)super.pixelData;}
-
--(id)initWithWidth:(unsigned long)width height:(unsigned long)height colorSpace:(CGColorSpaceRef)colorSpace bitmapInfo:(CGBitmapInfo)bitmapInfo component:(NSUInteger)component
+ChipmunkCGContextSampler* ChipmunkCGContextSampler::initWith(unsigned long width,unsigned long height,CGColorSpaceRef colorSpace,CGBitmapInfo bitmapInfo,int component);
 {
 	// Need to create a context to get info about the context.
 	// If you let the context allocate it's own memory it seems to move it around. O_o
@@ -163,39 +137,19 @@ BorderedBB(cpBB bb, NSUInteger width, NSUInteger height)
 	unsigned long bpp = CGBitmapContextGetBitsPerPixel(temp)/8;
 	cpAssertHard(bpc == 8, "Cannot handle non-8bit-per-pixel bitmap data!");
 	
-	CGContextRelease(temp);	
-	
 	unsigned long stride = width*bpp;
 	NSMutableData *pixelData = [NSMutableData dataWithLength:stride*height];
 	_context = CGBitmapContextCreate([pixelData mutableBytes], width, height, bpc, stride, colorSpace, bitmapInfo);
 	
-	return [self initWithWidth:width height:height stride:stride bytesPerPixel:bpp component:component flip:TRUE pixelData:pixelData];
+	return this->initWith(width,height,stride,bpp,component,TRUE,pixelData);
 }
 
--(void)dealloc
+ChipmunkCGContextSampler::~ChipmunkCGContextSampler()
 {
-	CGContextRelease(_context);
-	
-	[super dealloc];
+
 }
 
-@end
-
-
-
-@implementation ChipmunkImageSampler
-
-+(CGImageRef)loadImage:(NSURL *)url
-{
-	CGImageSourceRef image_source = CGImageSourceCreateWithURL((CFURLRef)url, NULL);
-	CGImageRef image = CGImageSourceCreateImageAtIndex(image_source, 0, NULL);
-	cpAssertHard(image, "Image %s could not be loaded.", [[url description] UTF8String]);
-	
-	CFRelease(image_source);
-	return image;
-}
-
--(id)initWithImage:(CGImageRef)image isMask:(bool)isMask contextWidth:(NSUInteger)width contextHeight:(NSUInteger)height
+ChipmunkImageSampler* ChipmunkImageSampler::initWith(Image* image,bool isMask,int width,int height)
 {
 	if(width == 0) width = CGImageGetWidth(image);
 	if(height == 0)  height = CGImageGetHeight(image);
@@ -208,11 +162,9 @@ BorderedBB(cpBB bb, NSUInteger width, NSUInteger height)
 	}
 	
 	CGColorSpaceRelease(colorSpace);
-	
-	return self;
 }
 
--(id)initWithImageFile:(NSURL *)url isMask:(bool)isMask
+ChipmunkImageSampler* ChipmunkImageSampler::initWithImageFile(std::string *url,bool isMask);
 {
 	CGImageRef image = [[self class] loadImage:url];
 	unsigned long width = CGImageGetWidth(image);
@@ -221,13 +173,9 @@ BorderedBB(cpBB bb, NSUInteger width, NSUInteger height)
 	self = [self initWithImage:image isMask:isMask contextWidth:width contextHeight:height];
 	
 	CGImageRelease(image);
-	
-	return self;
 }
 
-+(ChipmunkImageSampler *)samplerWithImageFile:(NSURL *)url isMask:(bool)isMask
+ChipmunkImageSampler *ChipmunkImageSampler::samplerWithImageFile(std::string url,bool isMask)
 {
 	return [[[self alloc] initWithImageFile:url	isMask:isMask] autorelease];
 }
-
-@end
