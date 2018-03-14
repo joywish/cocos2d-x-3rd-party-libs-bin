@@ -6,53 +6,12 @@
 
 // Just in case the user doesn't have -ObjC in their linker flags.
 // Annoyingly, this is the case more often than not.
-@interface NSArrayChipmunkObject : NSArray<ChipmunkObject>
-
-@property(nonatomic, retain) NSArray *chipmunkObjects;
-
-@end
-
-@implementation NSArrayChipmunkObject
-
-@synthesize chipmunkObjects = _chipmunkObjects;
-
--(id)initWithArray:(NSArray *)objects {
-	if((self = [super init])){
-		self.chipmunkObjects = objects;
-	}
-	
-	return self;
-}
-
--(NSUInteger)count
-{
-	return [_chipmunkObjects count];
-}
-
--(id)objectAtIndex:(NSUInteger)index
-{
-	return [_chipmunkObjects objectAtIndex:index];
-}
-
-@end
-
-@implementation NSArray(ChipmunkObject)
-
--(id<NSFastEnumeration>)chipmunkObjects
-{
-	return self;
-}
-
-@end
-
 
 // Private class used to wrap the statically allocated staticBody attached to each space.
-@interface _ChipmunkStaticBodySingleton : ChipmunkBody {
+@class _ChipmunkStaticBodySingleton :public ChipmunkBody {
 	cpBody *_bodyPtr;
 	ChipmunkSpace *space; // weak ref
 }
-
-@end
 
 typedef struct HandlerContext {
 	ChipmunkSpace *space;
@@ -64,9 +23,9 @@ typedef struct HandlerContext {
 	SEL separateSelector;
 } HandlerContext;
 
-@implementation ChipmunkSpace
+//--------------------------------------------------ChipmunkSpace
 
-+(ChipmunkSpace *)spaceFromCPSpace:(cpSpace *)space
+ChipmunkSpace *ChipmunkSpace::spaceFromCPSpace(cpSpace *space)
 {	
 	ChipmunkSpace *obj = space->userData;
 	cpAssertHard([obj isKindOfClass:[ChipmunkSpace class]], "'space->data' is not a pointer to a ChipmunkSpace object.");
@@ -74,62 +33,45 @@ typedef struct HandlerContext {
 	return obj;
 }
 
-+(instancetype)allocWithZone:(struct _NSZone *)zone
+ChipmunkSpace *ChipmunkSpace::initWithSpace(cpSpace * space)
 {
-#if CHIPMUNK_SPACE_USE_HASTY_SPACE
-	Class class = [ChipmunkHastySpace class];
-#else
-	Class class = [ChipmunkSpace class];
-#endif
-
-	return NSAllocateObject(class, 0, zone);
-}
-
-- (id)initWithSpace:(cpSpace *)space
-{
-	if((self = [super init])){
-		_children = [[NSMutableSet alloc] init];
-		_handlers = [[NSMutableArray alloc] init];
+	//_children = [[NSMutableSet alloc] init];
+	//_handlers = [[NSMutableArray alloc] init];
 		
-		_space = space;
-		cpSpaceSetUserData(_space, self);
+	_space = space;
+	cpSpaceSetUserData(_space, self);
 		
-		_staticBody = [[ChipmunkBody alloc] initWithMass:0.0f andMoment:0.0f];
-		_staticBody.type = CP_BODY_TYPE_STATIC;
-		cpSpaceSetStaticBody(_space, _staticBody.body);
-	}
+	_staticBody = new ChipmunkBody(0.0f,0.0f);
+	_staticBody.type = CP_BODY_TYPE_STATIC;
+	cpSpaceSetStaticBody(_space, _staticBody.body);
 	
-	return self;
+	return this;
 }
 
-- (id)init {
-	return [self initWithSpace:cpSpaceNew()];
+ChipmunkSpace *ChipmunkSpace::init{
+	return this->initWithSpace:cpSpaceNew();
 }
 
--(void)freeSpace
+void *ChipmunkSpace::freeSpace
 {
 	cpSpaceFree(_space);
 }
 
-- (void) dealloc {
-	[self freeSpace];
-	[_staticBody release];
+ChipmunkSpace::~ChipmunkSpace(){
+	this->freeSpace;
+	delete _staticBody;
 	
-	[_children release];
-	[_handlers release];
-	
-	[super dealloc];
 }
 
-- (cpSpace *)space {return _space;}
-
-@synthesize userData = _userData;
+cpSpace *ChipmunkSpace::space{ 
+	return _space; 
+}
 
 // accessor macros
 #define getter(type, lower, upper) \
-- (type)lower {return cpSpaceGet##upper(_space);}
+type ChipmunkSpace::lower {return cpSpaceGet##upper(_space);}
 #define setter(type, lower, upper) \
-- (void)set##upper:(type)value {cpSpaceSet##upper(_space, value);};
+void ChipmunkSpace::set##upper:(type)value {cpSpaceSet##upper(_space, value);};
 #define both(type, lower, upper) \
 getter(type, lower, upper) \
 setter(type, lower, upper)
@@ -144,9 +86,13 @@ both(cpFloat, collisionBias, CollisionBias);
 both(cpTimestamp, collisionPersistence, CollisionPersistence);
 getter(cpFloat, currentTimeStep, CurrentTimeStep);
 
-- (BOOL)isLocked {return cpSpaceIsLocked(_space);}
+bool ChipmunkSpace::isLocked{ 
+	return cpSpaceIsLocked(_space); 
+}
 
-- (ChipmunkBody *)staticBody {return _staticBody;}
+ChipmunkBody *ChipmunkSpace::staticBody{ 
+	return _staticBody; 
+}
 
 typedef BOOL (*BeginProto)(id, SEL, cpArbiter *, ChipmunkSpace *);
 static bool Begin(cpArbiter *arb, struct cpSpace *space, HandlerContext *ctx){return ((BeginProto)objc_msgSend)(ctx->delegate, ctx->beginSelector, arb, ctx->space);}
@@ -162,17 +108,17 @@ static void Separate(cpArbiter *arb, struct cpSpace *space, HandlerContext *ctx)
 
 // TODO handlers are never filtered.
 
-- (void)setDefaultCollisionHandler:(id)delegate
-	begin:(SEL)begin
-	preSolve:(SEL)preSolve
-	postSolve:(SEL)postSolve
-	separate:(SEL)separate
+void ChipmunkSpace::setDefaultCollisionHandler((id)delegate
+	,(SEL)begin
+	,(SEL)preSolve
+	,(SEL)postSolve
+	,(SEL)separate)
 {
 	cpCollisionType sentinel = (cpCollisionType)@"DEFAULT";
 	
-	HandlerContext context = {self, delegate, sentinel, sentinel, begin, preSolve, postSolve, separate};
-	NSData *data = [NSData dataWithBytes:&context length:sizeof(context)];
-	[_handlers addObject:data];
+	HandlerContext context = {this, delegate, sentinel, sentinel, begin, preSolve, postSolve, separate};
+	//NSData *data = [NSData dataWithBytes:&context length:sizeof(context)];
+	[_handlers addObject:nullptr];
 	
 	cpCollisionHandler *handler = cpSpaceAddDefaultCollisionHandler(_space);
 	if(begin) handler->beginFunc = (cpCollisionBeginFunc)Begin;
@@ -182,16 +128,16 @@ static void Separate(cpArbiter *arb, struct cpSpace *space, HandlerContext *ctx)
 	handler->userData = (void *)[data bytes];
 }
 	
-- (void)addCollisionHandler:(id)delegate
-	typeA:(cpCollisionType)a typeB:(cpCollisionType)b
-	begin:(SEL)begin
-	preSolve:(SEL)preSolve
-	postSolve:(SEL)postSolve
-	separate:(SEL)separate
+void ChipmunkSpace::addCollisionHandler((id)delegate
+	,cpCollisionType a,cpCollisionType b
+	,(SEL)begin
+	,(SEL)preSolve
+	,(SEL)postSolve
+	,(SEL)separate
 {
-	HandlerContext context = {self, delegate, a, b, begin, preSolve, postSolve, separate};
-	NSData *data = [NSData dataWithBytes:&context length:sizeof(context)];
-	[_handlers addObject:data];
+	HandlerContext context = {this, delegate, a, b, begin, preSolve, postSolve, separate};
+	//NSData *data = [NSData dataWithBytes:&context length:sizeof(context)];
+	[_handlers addObject:nullptr];
 	
 	cpCollisionHandler *handler = cpSpaceAddCollisionHandler(_space, a, b);
 	if(begin) handler->beginFunc = (cpCollisionBeginFunc)Begin;
@@ -201,8 +147,9 @@ static void Separate(cpArbiter *arb, struct cpSpace *space, HandlerContext *ctx)
 	handler->userData = (void *)[data bytes];
 }
 
-- (id)add:(NSObject<ChipmunkObject> *)obj
+ChipmunkObject* ChipmunkSpace::add(ChipmunkObject *obj)
 {
+	/*
 	if([obj conformsToProtocol:@protocol(ChipmunkBaseObject)]){
 		[(NSObject<ChipmunkBaseObject> *)obj addToSpace:self];
 	} else if([obj conformsToProtocol:@protocol(ChipmunkObject)]){
@@ -210,13 +157,14 @@ static void Separate(cpArbiter *arb, struct cpSpace *space, HandlerContext *ctx)
 	} else {
 		[NSException raise:@"NSArgumentError" format:@"Attempted to add an object of type %@ to a ChipmunkSpace.", [obj class]];
 	}
-	
-	[_children addObject:obj];
+	*/
+	_children->addObject(obj);
 	return obj;
 }
 
-- (id)remove:(NSObject<ChipmunkObject> *)obj
+ChipmunkObject* ChipmunkSpace::remove(ChipmunkObject *obj)
 {
+	/*
 	if([obj conformsToProtocol:@protocol(ChipmunkBaseObject)]){
 		[(NSObject<ChipmunkBaseObject> *)obj removeFromSpace:self];
 	} else if([obj conformsToProtocol:@protocol(ChipmunkObject)]){
@@ -224,33 +172,33 @@ static void Separate(cpArbiter *arb, struct cpSpace *space, HandlerContext *ctx)
 	} else {
 		[NSException raise:@"NSArgumentError" format:@"Attempted to remove an object of type %@ from a ChipmunkSpace.", [obj class]];
 	}
-	
-	[_children removeObject:obj];
+	*/
+	_children->removeObject(obj);
 	return obj;
 }
 
--(BOOL)contains:(NSObject<ChipmunkObject> *)obj
+bool ChipmunkSpace::contains(ChipmunkObject * obj)
 {
-	return [_children containsObject:obj];
+	return _children->containsObject(obj);
 }
 
-- (NSObject<ChipmunkObject> *)smartAdd:(NSObject<ChipmunkObject> *)obj
+ChipmunkObject *ChipmunkSpace::smartAdd(ChipmunkObject *obj)
 {
 	if(cpSpaceIsLocked(_space)){
-		[self addPostStepAddition:obj];
+		this->addPostStepAddition(obj);
 	} else {
-		[self add:obj];
+		this->add(obj);
 	}
 	
 	return obj;
 }
 
-- (NSObject<ChipmunkObject> *)smartRemove:(NSObject<ChipmunkObject> *)obj
+ChipmunkObject*ChipmunkSpace::smartRemove(hipmunkObject *obj)
 {
 	if(cpSpaceIsLocked(_space)){
-		[self addPostStepRemoval:obj];
+		this->addPostStepRemoval(obj);
 	} else {
-		[self remove:obj];
+		this->remove(obj);
 	}
 	
 	return obj;
@@ -271,19 +219,16 @@ postStepPerform(cpSpace *unused, id key, struct PostStepTargetContext *context)
 	[key release];
 }
 
-- (BOOL)addPostStepCallback:(id)target selector:(SEL)selector key:(id)key
+bool ChipmunkSpace::addPostStepCallback(void* target,(SEL)selector,void*key)
 {
 	if(!cpSpaceGetPostStepCallback(_space, key)){
 		struct PostStepTargetContext *context = cpcalloc(1, sizeof(struct PostStepTargetContext));
 		(*context) = (struct PostStepTargetContext){target, selector};
 		cpSpaceAddPostStepCallback(_space, (cpPostStepFunc)postStepPerform, key, context);
 		
-		[target retain];
-		[key retain];
-		
-		return TRUE;
+		return true;
 	} else {
-		return FALSE;
+		return false;
 	}
 }
 
@@ -291,32 +236,27 @@ static void
 postStepPerformBlock(cpSpace *unused, id key, ChipmunkPostStepBlock block)
 {
 	block();
-	
-	[block release];
-	[key release];
 }
 
-- (BOOL)addPostStepBlock:(ChipmunkPostStepBlock)block key:(id)key
+bool ChipmunkSpace::addPostStepBlock(ChipmunkPostStepBlock block, void* key)
 {
 	if(!cpSpaceGetPostStepCallback(_space, key)){
-		cpSpaceAddPostStepCallback(_space, (cpPostStepFunc)postStepPerformBlock, key, [block copy]);
-		
-		[key retain];
-		
-		return TRUE;
+		cpSpaceAddPostStepCallback(_space, (cpPostStepFunc)postStepPerformBlock, key, block->clone());
+
+		return true;
 	} else {
-		return FALSE;
+		return false;
 	}
 }
 
-- (void)addPostStepAddition:(NSObject<ChipmunkObject> *)obj
+void ChipmunkSpace::addPostStepAddition(ChipmunkObject *obj)
 {
-	[self addPostStepCallback:self selector:@selector(add:) key:obj];
+	this->addPostStepCallback(this,selector:@selector(add:),obj);
 }
 
-- (void)addPostStepRemoval:(NSObject<ChipmunkObject> *)obj
+void ChipmunkSpace::addPostStepRemoval(ChipmunkObject *obj)
 {
-	[self addPostStepCallback:self selector:@selector(remove:) key:obj];
+	this->addPostStepCallback(this,selector:@selector(remove:),obj);
 }
 
 - (NSArray *)pointQueryAll:(cpVect)point maxDistance:(cpFloat)maxDistance filter:(cpShapeFilter)filter

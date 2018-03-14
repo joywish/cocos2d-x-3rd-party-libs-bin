@@ -43,10 +43,14 @@
     <ClInclude Include="..\..\..\include\chipmunk\cpDampedSpring.h" />
     <ClInclude Include="..\..\..\include\chipmunk\cpGearJoint.h" />
     <ClInclude Include="..\..\..\include\chipmunk\cpGrooveJoint.h" />
+    <ClInclude Include="..\..\..\include\chipmunk\cpHastySpace.h" />
+    <ClInclude Include="..\..\..\include\chipmunk\cpMarch.h" />
     <ClInclude Include="..\..\..\include\chipmunk\cpPinJoint.h" />
     <ClInclude Include="..\..\..\include\chipmunk\cpPivotJoint.h" />
+    <ClInclude Include="..\..\..\include\chipmunk\cpPolyline.h" />
     <ClInclude Include="..\..\..\include\chipmunk\cpPolyShape.h" />
     <ClInclude Include="..\..\..\include\chipmunk\cpRatchetJoint.h" />
+    <ClInclude Include="..\..\..\include\chipmunk\cpRobust.h" />
     <ClInclude Include="..\..\..\include\chipmunk\cpRotaryLimitJoint.h" />
     <ClInclude Include="..\..\..\include\chipmunk\cpShape.h" />
     <ClInclude Include="..\..\..\include\chipmunk\cpSimpleMotor.h" />
@@ -178,7 +182,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;..\..\..\ocpp\include;</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
@@ -194,7 +198,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\include\chipmunk</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include\chipmunk;..\..\..\ocpp\include;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -211,7 +215,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;..\..\..\ocpp\include;</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
     <Link>
@@ -230,7 +234,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;..\..\..\ocpp\include;</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
       <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
@@ -250,7 +254,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\..\include\chipmunk</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include\chipmunk;..\..\..\ocpp\include;</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CompileAs>CompileAsCpp</CompileAs>
     </ClCompile>
@@ -271,7 +275,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;CHIPMUNK_FFI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <CompileAs>CompileAsCpp</CompileAs>
-      <AdditionalIncludeDirectories>..\..\..\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\include;..\..\..\ocpp\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

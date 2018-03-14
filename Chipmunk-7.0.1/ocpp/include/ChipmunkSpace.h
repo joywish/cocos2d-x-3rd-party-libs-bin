@@ -16,6 +16,9 @@ protected:
 	void* _userData;
 public:
 
+	ChipmunkShape *addShape(ChipmunkShape *obj);
+	ChipmunkShape *removeShape(ChipmunkShape *obj);
+
 	///The iteration count is how many solver passes the space should use when solving collisions and joints (default is 10).
 	///Fewer iterations mean less CPU usage, but lower quality (mushy looking) physics.
 	int iterations;
@@ -178,7 +181,7 @@ public:
 
 	/// Find the closest shape to a point that is within @c maxDistance of @c point.
 	/// The point is treated as having the given layers and group.
-	ChipmunkPointQueryInfo *) pointQueryNearest(cpVect point,cpFloat maxDistance,cpShapeFilter filter);
+	ChipmunkPointQueryInfo * pointQueryNearest(cpVect point,cpFloat maxDistance,cpShapeFilter filter);
 
 	/// Return a NSArray of ChipmunkSegmentQueryInfo objects for all the shapes that overlap the segment. The objects are unsorted.
 	std::vector<ChipmunkObject*> segmentQueryAllFrom(cpVect start,cpVect end,cpFloat radius,cpShapeFilter filter);
@@ -215,7 +218,8 @@ public:
 	void reindexShapesForBody(ChipmunkBody *body);
 
 	/// Step time forward. While variable timesteps may be used, a constant timestep will allow you to reduce CPU usage by using fewer iterations.
-	void step(cpFloatdt);
+	void step(cpFloat dt);
+
 };
 
 

@@ -9,12 +9,13 @@ private:
 	void* _userData;
 
 public:
+	virtual ~ChipmunkShape();
 	/// Get the ChipmunkShape object associciated with a cpShape pointer.
 	/// Undefined if the cpShape wasn't created using Objective-Chipmunk.
 	static ChipmunkShape *shapeFromCPShape(cpShape *shape);
 
 	/// Returns a pointer to the underlying cpShape C struct.
-	cpShape *shape;
+	cpShape *getShape();
 
 	/// The ChipmunkBody that this shape is attached to.
 	ChipmunkBody *body;
@@ -52,7 +53,7 @@ public:
 	cpShapeFilter filter;
 
 	/// Get the space the body is added to.
-	ChipmunkSpace *space;
+	ChipmunkSpace *getSpace();
 
 	///An object that this shape is associated with. You can use this get a reference to your game object or controller object from within callbacks.
 	///@attention Like most @c delegate properties this is a weak reference and does not call @c retain. This prevents reference cycles from occuring.
@@ -70,25 +71,25 @@ class ChipmunkPointQueryInfo {
 private:
 	cpPointQueryInfo _info;
 public:
-
+	virtual ~ChipmunkPointQueryInfo();
 	ChipmunkPointQueryInfo* initWithInfo(cpPointQueryInfo *info);
 
 	/// Returns a pointer to the underlying cpNearestPointQueryInfo C struct.
-	cpPointQueryInfo *info;
+	cpPointQueryInfo *info();
 
 	/// The ChipmunkShape found.
-	ChipmunkShape *shape;
+	ChipmunkShape *shape();
 
 	/// The closest point on the surface of the shape to the point.
-	cpVect point;
+	cpVect point();
 
 	/// The distance between the point and the surface of the shape.
 	/// Negative distances mean that the point is that depth inside the shape.
-	cpFloat distance;
+	cpFloat distance();
 
 	/// The gradient of the signed distance function.
 	/// The same as info.point/info.dist, but accurate even for very small values of info.dist.
-	cpVect gradient;
+	cpVect gradient();
 };
 
 
@@ -98,6 +99,7 @@ private:
 	cpSegmentQueryInfo _info;
 	cpVect _start, _end;
 public:
+	virtual ChipmunkSegmentQueryInfo();
 
 	ChipmunkSegmentQueryInfo* initWith(cpSegmentQueryInfo *info,cpVect start,cpVect end);
 
@@ -133,7 +135,7 @@ private:
 	ChipmunkShape *_shape;
 	cpContactPointSet _contactPoints;
 public:
-
+	~ChipmunkShapeQueryInfo();
 	ChipmunkShapeQueryInfo* initWith(ChipmunkShape *shape,cpContactPointSet *andPoints);
 	ChipmunkShape *shape;
 	cpContactPointSet *contactPoints;

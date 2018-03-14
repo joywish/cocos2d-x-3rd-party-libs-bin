@@ -2,68 +2,43 @@
 #define CP_ALLOW_PRIVATE_ACCESS 1
 #include "ObjectiveChipmunk.h"
 
-@interface ChipmunkSpace(DoubleDispatch)
+//-------------------------------------------------------------ChipmunkShape
 
-- (ChipmunkShape *)addShape:(ChipmunkShape *)obj;
-- (ChipmunkShape *)removeShape:(ChipmunkShape *)obj;
-
-@end
-
-@implementation ChipmunkShape
-
-@synthesize userData = _userData;
-
-+(ChipmunkShape *)shapeFromCPShape:(cpShape *)shape
+ChipmunkShape *ChipmunkShape::shapeFromCPShape(cpShape *shape)
 {
 	ChipmunkShape *obj = shape->userData;
 	cpAssertHard([obj isKindOfClass:[ChipmunkShape class]], "'shape->data' is not a pointer to a ChipmunkShape object.");
-	
 	return obj;
 }
 
-- (void) dealloc {
-	[self.body release];
-	cpShapeDestroy(self.shape);
-	[super dealloc];
+ChipmunkShape::~ChipmunkShape{
+	delete this->body;
+	cpShapeDestroy(this->shape);
 }
 
 
-- (cpShape *)shape {
-	[self doesNotRecognizeSelector:_cmd];
-	return nil;
+cpShape *ChipmunkShape::getShape()
+	//[self doesNotRecognizeSelector:_cmd];
+	return nullptr;
 }
-
-- (ChipmunkBody *)body {
-	cpBody *body = cpShapeGetBody(self.shape);
-	return (body ? cpBodyGetUserData(body) : nil);
-}
-
-- (void)setBody:(ChipmunkBody *)body {
-	if(self.body != body){
-		[self.body release];
-		cpShapeSetBody(self.shape, [body retain].body);
-	}
-}
-
--(cpFloat)mass {return cpShapeGetMass(self.shape);}
--(void)setMass:(cpFloat)mass {cpShapeSetMass(self.shape, mass);}
-
--(cpFloat)density {return cpShapeGetDensity(self.shape);}
--(void)setDensity:(cpFloat)density {cpShapeSetDensity(self.shape, density);}
-
--(cpFloat)moment {return cpShapeGetMoment(self.shape);}
--(cpFloat)area {return cpShapeGetArea(self.shape);}
--(cpVect)centerOfGravity {return cpShapeGetCenterOfGravity(self.shape);}
 
 // accessor macros
 #define getter(type, lower, upper) \
-- (type)lower {return cpShapeGet##upper(self.shape);}
-#define setter(type, lower, upper) \
-- (void)set##upper:(type)value {cpShapeSet##upper(self.shape, value);};
+type ChipmunkShape::lower() {return cpShapeGet##upper(this->shape);}
+
+#define ChipmunkShape::setter(type, lower, upper) \
+void ChipmunkShape::set##upper(type value) {cpShapeSet##upper(this->shape, value);};
+
 #define both(type, lower, upper) \
 getter(type, lower, upper) \
 setter(type, lower, upper)
 
+both(ChipmunkBody*, body, Body)
+both(cpFloat, mass, Mass)
+both(cpFloat, ensity, Density)
+getter(cpFloat, moment, Moment)
+getter(cpFloat, area, Area)
+getter(cpVect, centerOfGravity, CenterOfGravity)
 getter(cpBB, bb, BB)
 both(BOOL, sensor, Sensor)
 both(cpFloat, elasticity, Elasticity)
@@ -72,240 +47,267 @@ both(cpVect, surfaceVelocity, SurfaceVelocity)
 both(cpCollisionType, collisionType, CollisionType)
 both(cpShapeFilter, filter, Filter)
 
--(ChipmunkSpace *)space {
-	cpSpace *space = cpShapeGetSpace(self.shape);
-	return (ChipmunkSpace *)(space ? cpSpaceGetUserData(space) : nil);
+ChipmunkSpace *ChipmunkShape::getSpace(){
+	cpSpace *space = cpShapeGetSpace(this->shape);
+	return (ChipmunkSpace *)(space ? cpSpaceGetUserData(space) : nullptr);
 }
 
-- (cpBB)cacheBB {return cpShapeCacheBB(self.shape);}
+cpBB ChipmunkShape::cacheBB
+{ 
+	return cpShapeCacheBB(this->shape); 
+}
 
-- (ChipmunkPointQueryInfo *)pointQuery:(cpVect)point
+ChipmunkPointQueryInfo *ChipmunkShape::pointQuery(cpVect point)
 {
 	cpPointQueryInfo info;
-	cpShapePointQuery(self.shape, point, &info);
-	return (info.shape ? [[[ChipmunkPointQueryInfo alloc] initWithInfo:&info] autorelease] : nil);
+	cpShapePointQuery(this->shape, point, &info);
+	return (info.shape ? new ChipmunkPointQueryInfo(info): nullptr);
 }
 
-- (ChipmunkSegmentQueryInfo *)segmentQueryFrom:(cpVect)start to:(cpVect)end radius:(cpFloat)radius
+ChipmunkSegmentQueryInfo *ChipmunkShape::segmentQueryFrom(cpVect start,cpVect end,cpFloat radius)
 {
 	cpSegmentQueryInfo info;
-	if(cpShapeSegmentQuery(self.shape, start, end, radius, &info)){
-		return [[[ChipmunkSegmentQueryInfo alloc] initWithInfo:&info start:start end:end] autorelease];
+	if(cpShapeSegmentQuery(this->shape, start, end, radius, &info)){
+		return new ChipmunkSegmentQueryInfo(&info,start,end);
 	} else {
-		return nil;
+		return nullptr;
 	}
 }
 
+// NSArray *ChipmunkShape::chipmunkObjects()
+// { 
+// 	return[NSArray arrayWithObject : self]; 
+// }
 
-- (NSArray *)chipmunkObjects {return [NSArray arrayWithObject:self];}
-- (void)addToSpace:(ChipmunkSpace *)space {[space addShape:self];}
-- (void)removeFromSpace:(ChipmunkSpace *)space {[space removeShape:self];}
-
-@end
-
-
-@implementation ChipmunkPointQueryInfo
-
-- (id)initWithInfo:(cpPointQueryInfo *)info
+void ChipmunkShape::addToSpace(ChipmunkSpace *space)
 {
-	if((self = [super init])){
-		_info = (*info);
-		[self.shape retain];
+	space->addShape(this);
+}
+
+void ChipmunkShape::removeFromSpace(ChipmunkSpace *space)
+{ 
+	space->removeShape(this); 
+}
+
+//--------------------------------------------------------------ChipmunkPointQueryInfo
+
+ChipmunkPointQueryInfo* ChipmunkPointQueryInfo::initWithInfo(cpPointQueryInfo *info)
+{
+	_info = info;
+	return this;
+}
+
+cpPointQueryInfo *ChipmunkPointQueryInfo::info()
+{ 
+	return &_info; 
+}
+
+ChipmunkShape *ChipmunkPointQueryInfo::shape()
+{ 
+	return (_info.shape ? _info.shape->userData : nullptr); 
+}
+
+cpVect ChipmunkPointQueryInfo::point()
+{ 
+	return _info.point; 
+}
+
+cpFloat ChipmunkPointQueryInfo::distance()
+{ 
+	return _info.distance; 
+}
+
+cpVect ChipmunkPointQueryInfo::gradient()
+{ 
+	return _info.gradient; 
+}
+
+ChipmunkPointQueryInfo::~ChipmunkPointQueryInfo()
+{
+	delete this->shape;
+}
+
+//-------------------------------------------------------------ChipmunkSegmentQueryInfo
+
+ChipmunkSegmentQueryInfo* ChipmunkSegmentQueryInfo::initWithInfo(cpSegmentQueryInfo *info,cpVect start,cpVect end)
+{
+	_info = (*info);
+	_start = start;
+	_end = end;
+
+	return this;
+}
+
+cpSegmentQueryInfo *ChipmunkSegmentQueryInfo::info()
+{ 
+	return &_info; 
+}
+ChipmunkShape *ChipmunkSegmentQueryInfo::shape{ 
+	return (_info.shape ? _info.shape->userData : nullptr); 
+}
+cpFloat ChipmunkSegmentQueryInfo::t()
+{ 
+	return _info.alpha; 
+}
+cpVect ChipmunkSegmentQueryInfo::normal()
+{ 
+	return _info.normal; 
+}
+cpVect ChipmunkSegmentQueryInfo::point{ 
+	return _info.point; 
+}
+cpFloat ChipmunkSegmentQueryInfo::dist{ 
+	return cpvdist(_start, _end)*_info.alpha; 
+}
+cpVect ChipmunkSegmentQueryInfo::start{ 
+	return _start; 
+}
+cpVect ChipmunkSegmentQueryInfo::end{ 
+	return _end; 
+}
+
+ChipmunkSegmentQueryInfo::~ChipmunkSegmentQueryInfo()
+{
+	delete this->shape;
+}
+
+//-------------------------------------------------------------ChipmunkShapeQueryInfo
+
+
+cpContactPointSet *ChipmunkShapeQueryInfo::contactPoints()
+{ 
+	return &_contactPoints; 
+}
+
+ChipmunkShapeQueryInfo* ChipmunkShapeQueryInfo::initWithShape(ChipmunkShape *shape, cpContactPointSet *andPoints)
+{
+	this->shape = shape;
+	this->contactPoints = *andPoints;
+	return this;
+}
+
+ChipmunkShapeQueryInfo::~ChipmunkShapeQueryInfo(){
+	delete this->shape;
+}
+
+//-------------------------------------------------ChipmunkCircleShape
+
+ChipmunkCircleShape *ChipmunkCircleShape::circleWithBody(ChipmunkBody *body,cpFloat radius,cpVect offset)
+{
+	return this->initWithBody(body,radius,offset);
+}
+
+cpShape *ChipmunkCircleShape::shape()
+{ 
+	return (cpShape *)&_shape; 
+}
+
+ChipmunkCircleShape::initWithBody(ChipmunkBody *body,cpFloat radius,cpVect offset){
+	this->body = body;
+	cpCircleShapeInit(&_shape, body.body, radius, offset);
+	this->shape->userData = this;
+	return this;
+}
+
+cpFloat ChipmunkCircleShape::radius()
+{ 
+	return cpCircleShapeGetRadius((cpShape *)&_shape); 
+}
+cpVect ChipmunkCircleShape::offset()
+{ 
+	return cpCircleShapeGetOffset((cpShape *)&_shape); 
+}
+
+
+//------------------------------------ChipmunkSegmentShape
+
+ChipmunkSegmentShape *ChipmunkSegmentShape::segmentWithBody(ChipmunkBody *body,cpVect from,cpVect to,cpFloat radius)
+{
+	return this->initWithBody(body,from,to,radius);
+}
+
+cpShape *ChipmunkSegmentShape::shape()
+{ 
+	return (cpShape *)&_shape; 
+}
+
+ChipmunkSegmentShape *ChipmunkSegmentShape::initWithBody(ChipmunkBody *body, cpVect from, cpVect to, cpFloat radius){
+	this->body = body;
+		cpSegmentShapeInit(&_shape, body.body, from, to, radius);
+		this->shape->userData = this;
 	}
-	
-	return self;
+	return this;
 }
 
-- (cpPointQueryInfo *)info {return &_info;}
-- (ChipmunkShape *)shape {return (_info.shape ? _info.shape->userData : nil);}
-- (cpVect)point {return _info.point;}
-- (cpFloat)distance {return _info.distance;}
-- (cpVect)gradient {return _info.gradient;}
-
-- (void)dealloc
+void ChipmunkSegmentShape::setPrevNeighbor(cpVect prev,cpVect nextNeighbor)
 {
-	[self.shape release];
-	[super dealloc];
+	cpSegmentShapeSetNeighbors((cpShape *)&_shape, prev, nextNeighbor);
 }
 
+cpVect ChipmunkSegmentShape::a(){ 
+	return cpSegmentShapeGetA((cpShape *)&_shape); 
+}
+cpVect ChipmunkSegmentShape::b(){ 
+	return cpSegmentShapeGetB((cpShape *)&_shape); 
+}
+cpVect ChipmunkSegmentShape::normal(){ 
+	return cpSegmentShapeGetNormal((cpShape *)&_shape); 
+}
+cpFloat ChipmunkSegmentShape::radius(){ 
+	return cpSegmentShapeGetRadius((cpShape *)&_shape); 
+}
 
-@end
+//-------------------------------------------------ChipmunkPolyShape
 
-
-@implementation ChipmunkSegmentQueryInfo
-
-- (id)initWithInfo:(cpSegmentQueryInfo *)info start:(cpVect)start end:(cpVect)end
+ChipmunkPolyShape* ChipmunkPolyShape::polyWithBody(ChipmunkBody *body, int count, const cpVect * verts, cpTransform transform, cpFloat radius)
 {
-	if((self = [super init])){
-		_info = (*info);
-		_start = start;
-		_end = end;
-		
-		[self.shape retain];
-	}
-	
-	return self;
+	return this->initWithBody(body,count,verts,transform,radius);
 }
 
-- (cpSegmentQueryInfo *)info {return &_info;}
-- (ChipmunkShape *)shape {return (_info.shape ? _info.shape->userData : nil);}
-- (cpFloat)t {return _info.alpha;}
-- (cpVect)normal {return _info.normal;}
-- (cpVect)point {return _info.point;}
-- (cpFloat)dist {return cpvdist(_start, _end)*_info.alpha;}
-- (cpVect)start {return _start;}
-- (cpVect)end {return _end;}
-
-- (void)dealloc
+ChipmunkPolyShape* ChipmunkPolyShape::boxWithBody(ChipmunkBody *body, int count, const cpVect * verts, cpTransform transform, cpFloat radius)
 {
-	[self.shape release];
-	[super dealloc];
+	return this->initWithBody(body, count, verts, transform, radius);
 }
 
-
-@end
-
-
-@implementation ChipmunkShapeQueryInfo
-
-@synthesize shape = _shape;
-- (cpContactPointSet *)contactPoints {return &_contactPoints;}
-
-- (id)initWithShape:(ChipmunkShape *)shape andPoints:(cpContactPointSet *)set
+ChipmunkPolyShape* ChipmunkPolyShape::boxWithBody(ChipmunkBody * body,cpBB bb,cpFloat radius)
 {
-	if((self = [super init])){
-		_shape = [shape retain];
-		_contactPoints = *set;
-	}
-	
-	return self;
+	return this->initBoxWithBody(body,bb,radius);
 }
 
-- (void)dealloc {
-	[_shape release];
-	[super dealloc];
+cpShape *ChipmunkPolyShape::shape(){ 
+	return (cpShape *)&_shape; 
 }
 
-@end
-
-@implementation ChipmunkCircleShape {
-	cpCircleShape _shape;
-}
-
-
-+ (ChipmunkCircleShape *)circleWithBody:(ChipmunkBody *)body radius:(cpFloat)radius offset:(cpVect)offset
+ChipmunkPolyShape* ChipmunkPolyShape::initWithBody(ChipmunkBody *body, int count, const cpVect * verts, cpTransform transform, cpFloat radius)
 {
-	return [[[self alloc] initWithBody:body radius:radius offset:offset] autorelease];
+	this->body=body;
+	cpPolyShapeInit(&_shape, body.body, count, verts, transform, radius);
+	this->shape->userData = this;
+	return this;
 }
 
-- (cpShape *)shape {return (cpShape *)&_shape;}
-
-- (id)initWithBody:(ChipmunkBody *)body radius:(cpFloat)radius offset:(cpVect)offset {
-	if((self = [super init])){
-		[body retain];
-		cpCircleShapeInit(&_shape, body.body, radius, offset);
-		self.shape->userData = self;
-	}
-	
-	return self;
-}
-
-- (cpFloat)radius {return cpCircleShapeGetRadius((cpShape *)&_shape);}
-- (cpVect)offset {return cpCircleShapeGetOffset((cpShape *)&_shape);}
-
-@end
-
-
-@implementation ChipmunkSegmentShape {
-	cpSegmentShape _shape;
-}
-
-+ (ChipmunkSegmentShape *)segmentWithBody:(ChipmunkBody *)body from:(cpVect)a to:(cpVect)b radius:(cpFloat)radius
+ChipmunkPolyShape* ChipmunkPolyShape::initBoxWithBody(ChipmunkBody *body, int count, const cpVect * verts, cpTransform transform, cpFloat radius)
 {
-	return [[[self alloc] initWithBody:body from:a to:b radius:radius] autorelease];
+	this->body = body;
+	cpBoxShapeInit(&_shape, body.body, width, height, radius);
+	this->shape->userData = this;
+	return this;
 }
 
-- (cpShape *)shape {return (cpShape *)&_shape;}
-
-- (id)initWithBody:(ChipmunkBody *)body from:(cpVect)a to:(cpVect)b radius:(cpFloat)radius {
-	if((self = [super init])){
-		[body retain];
-		cpSegmentShapeInit(&_shape, body.body, a, b, radius);
-		self.shape->userData = self;
-	}
-	
-	return self;
-}
-
-- (void)setPrevNeighbor:(cpVect)prev nextNeighbor:(cpVect)next
+ChipmunkPolyShape* ChipmunkPolyShape::initBoxWithBody(ChipmunkBody * body, cpBB bb, cpFloat radius)
 {
-	cpSegmentShapeSetNeighbors((cpShape *)&_shape, prev, next);
+	this->body = body
+	cpBoxShapeInit2(&_shape, body.body, bb, radius);
+	this->shape->userData = this;
+	return this;
 }
 
-- (cpVect)a {return cpSegmentShapeGetA((cpShape *)&_shape);}
-- (cpVect)b {return cpSegmentShapeGetB((cpShape *)&_shape);}
-- (cpVect)normal {return cpSegmentShapeGetNormal((cpShape *)&_shape);}
-- (cpFloat)radius {return cpSegmentShapeGetRadius((cpShape *)&_shape);}
-
-@end
-
-
-@implementation ChipmunkPolyShape {
-	cpPolyShape _shape;
+int ChipmunkPolyShape::count(){ 
+	return cpPolyShapeGetCount((cpShape *)&_shape); 
 }
-
-+ (id)polyWithBody:(ChipmunkBody *)body count:(int)count verts:(const cpVect *)verts transform:(cpTransform)transform radius:(cpFloat)radius
-{
-	return [[[self alloc] initWithBody:body count:count verts:verts transform:transform radius:radius] autorelease];
+cpFloat ChipmunkPolyShape::radius{ 
+	return cpPolyShapeGetRadius((cpShape *)&_shape); 
 }
-
-+ (id)boxWithBody:(ChipmunkBody *)body width:(cpFloat)width height:(cpFloat)height radius:(cpFloat)radius
-{
-	return [[[self alloc] initBoxWithBody:body width:width height:height radius:radius] autorelease];
+cpVect ChipmunkPolyShape::getVertex(int index){ 
+	return cpPolyShapeGetVert((cpShape *)&_shape, index); 
 }
-
-+ (id)boxWithBody:(ChipmunkBody *)body bb:(cpBB)bb radius:(cpFloat)radius
-{
-	return [[[self alloc] initBoxWithBody:body bb:bb radius:radius] autorelease];
-}
-
-- (cpShape *)shape {return (cpShape *)&_shape;}
-
-- (id)initWithBody:(ChipmunkBody *)body count:(int)count verts:(const cpVect *)verts transform:(cpTransform)transform radius:(cpFloat)radius
-{
-	if((self = [super init])){
-		[body retain];
-		cpPolyShapeInit(&_shape, body.body, count, verts, transform, radius);
-		self.shape->userData = self;
-	}
-	
-	return self;
-}
-
-- (id)initBoxWithBody:(ChipmunkBody *)body width:(cpFloat)width height:(cpFloat)height radius:(cpFloat)radius
-{
-	if((self = [super init])){
-		[body retain];
-		cpBoxShapeInit(&_shape, body.body, width, height, radius);
-		self.shape->userData = self;
-	}
-	
-	return self;
-}
-
-- (id)initBoxWithBody:(ChipmunkBody *)body bb:(cpBB)bb radius:(cpFloat)radius
-{
-	if((self = [super init])){
-		[body retain];
-		cpBoxShapeInit2(&_shape, body.body, bb, radius);
-		self.shape->userData = self;
-	}
-	
-	return self;
-}
-
-- (int)count {return cpPolyShapeGetCount((cpShape *)&_shape);}
-- (cpFloat)radius {return cpPolyShapeGetRadius((cpShape *)&_shape);}
-- (cpVect)getVertex:(int)index {return cpPolyShapeGetVert((cpShape *)&_shape, index);}
-
-@end

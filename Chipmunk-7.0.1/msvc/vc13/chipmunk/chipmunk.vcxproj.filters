@@ -94,6 +94,18 @@
     <ClInclude Include="..\..\..\src\prime.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\chipmunk\cpHastySpace.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\chipmunk\cpMarch.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\chipmunk\cpPolyline.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\include\chipmunk\cpRobust.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\src\chipmunk.c">
